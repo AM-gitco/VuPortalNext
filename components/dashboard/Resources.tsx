@@ -1,0 +1,330 @@
+import { FileText, Download, Star, Filter, Search, BookOpen, ArrowRight } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
+
+interface Resource {
+  id: string;
+  title: string;
+  description: string;
+  subject: string;
+  type: string;
+  size: string;
+  rating: number;
+  downloads: number;
+  uploadedBy: string;
+  uploadedDate: string;
+}
+
+interface ResourcesProps {
+  user: any;
+  onPageChange?: (page: string) => void;
+}
+
+export function Resources({ user, onPageChange }: ResourcesProps) {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedSubject, setSelectedSubject] = useState("all");
+  const [selectedType, setSelectedType] = useState("all");
+
+  // Check if user has subjects
+  const userSubjects = user?.subjects || [];
+  const hasSubjects = userSubjects.length > 0;
+
+  const mockResources: Resource[] = [
+    {
+      id: "1",
+      title: "Data Structures Complete Guide",
+      description: "Comprehensive guide covering arrays, linked lists, stacks, queues, trees, and graphs",
+      subject: "CS201",
+      type: "PDF",
+      size: "15.2 MB",
+      rating: 4.8,
+      downloads: 234,
+      uploadedBy: "Dr. Ahmed",
+      uploadedDate: "2024-11-20"
+    },
+    {
+      id: "2",
+      title: "Linear Algebra Solved Problems",
+      description: "200+ solved problems on matrices, determinants, and linear transformations",
+      subject: "MTH601",
+      type: "PDF",
+      size: "8.5 MB",
+      rating: 4.6,
+      downloads: 189,
+      uploadedBy: "Dr. Fatima",
+      uploadedDate: "2024-11-18"
+    },
+    {
+      id: "3",
+      title: "Web Development Course Notes",
+      description: "Complete notes from HTML, CSS, JavaScript to React and backend frameworks",
+      subject: "CS301",
+      type: "PDF",
+      size: "22.8 MB",
+      rating: 4.9,
+      downloads: 456,
+      uploadedBy: "Prof. Hassan",
+      uploadedDate: "2024-11-15"
+    },
+    {
+      id: "4",
+      title: "Calculus Formula Sheet",
+      description: "Quick reference guide for all calculus formulas and derivatives",
+      subject: "MTH601",
+      type: "PDF",
+      size: "3.2 MB",
+      rating: 4.7,
+      downloads: 512,
+      uploadedBy: "Dr. Aisha",
+      uploadedDate: "2024-11-10"
+    },
+    {
+      id: "5",
+      title: "Database Design Patterns",
+      description: "Advanced SQL patterns and optimization techniques for large-scale databases",
+      subject: "CS201",
+      type: "PDF",
+      size: "18.9 MB",
+      rating: 4.5,
+      downloads: 178,
+      uploadedBy: "Dr. Karim",
+      uploadedDate: "2024-11-08"
+    },
+    {
+      id: "6",
+      title: "Discrete Mathematics Tutorial",
+      description: "Tutorial covering set theory, logic, combinatorics, and graph theory",
+      subject: "MTH601",
+      type: "PDF",
+      size: "12.4 MB",
+      rating: 4.4,
+      downloads: 145,
+      uploadedBy: "Prof. Zainab",
+      uploadedDate: "2024-11-05"
+    }
+  ];
+
+  // Extract subject codes from user subjects
+  const getUserSubjectCodes = (): string[] => {
+    return userSubjects.map((subject: string) => {
+      const match = subject.match(/^([A-Z]{2,4}\d{3})/);
+      return match ? match[1] : subject.substring(0, 6);
+    });
+  };
+
+  const userSubjectCodes = getUserSubjectCodes();
+  const subjects = ["all", ...userSubjectCodes];
+  const types = ["all", "PDF", "Video", "Presentation", "Code", "Document"];
+
+  const filteredResources = mockResources.filter(resource => {
+    // Only show resources for user's subjects
+    if (!userSubjectCodes.includes(resource.subject)) return false;
+
+    const matchesSearch = resource.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      resource.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSubject = selectedSubject === "all" || resource.subject === selectedSubject;
+    const matchesType = selectedType === "all" || resource.type === selectedType;
+
+    return matchesSearch && matchesSubject && matchesType;
+  });
+
+  // Show no subjects message
+  if (!hasSubjects) {
+    return (
+      <div className="space-y-4 px-2 sm:px-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground">Resources</h1>
+            <p className="text-xs text-muted-foreground mt-1">
+              Access learning materials for your courses
+            </p>
+          </div>
+          <BookOpen className="h-8 w-8 sm:h-10 sm:w-10 text-blue-500 flex-shrink-0" />
+        </div>
+
+        <Card className="border-2 border-dashed border-gray-300 dark:border-gray-600">
+          <CardContent className="text-center py-12 sm:py-16">
+            <BookOpen className="mx-auto h-16 w-16 sm:h-20 sm:w-20 text-gray-400 mb-4" />
+            <h3 className="text-base font-semibold text-foreground mb-2">
+              No Subjects Selected
+            </h3>
+            <p className="text-xs text-muted-foreground mb-6">
+              Please select your subjects first to access course resources and materials.
+            </p>
+            <Button
+              size="lg"
+              className="text-sm sm:text-base"
+              onClick={() => onPageChange?.('subjects')}
+            >
+              <ArrowRight className="mr-2 h-4 w-4" />
+              Go to My Subjects
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4 px-2 sm:px-4">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Resources</h1>
+          <p className="text-xs text-muted-foreground mt-1">
+            {filteredResources.length} resources available
+          </p>
+        </div>
+        <BookOpen className="h-8 w-8 sm:h-10 sm:w-10 text-blue-500 flex-shrink-0" />
+      </div>
+
+      {/* Search and Filters */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+        <div className="sm:col-span-2 lg:col-span-2">
+          <div className="relative">
+            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              placeholder="Search resources..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-8 text-sm h-9"
+            />
+          </div>
+        </div>
+
+        <select
+          value={selectedSubject}
+          onChange={(e) => setSelectedSubject(e.target.value)}
+          className="px-3 py-2 text-sm border border-border rounded-lg bg-background text-foreground"
+        >
+          {subjects.map(subject => (
+            <option key={subject} value={subject}>
+              {subject === "all" ? "All Subjects" : subject}
+            </option>
+          ))}
+        </select>
+
+        <select
+          value={selectedType}
+          onChange={(e) => setSelectedType(e.target.value)}
+          className="px-3 py-2 text-sm border border-border rounded-lg bg-background text-foreground"
+        >
+          {types.map(type => (
+            <option key={type} value={type}>
+              {type === "all" ? "All Types" : type}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Resources Grid */}
+      {filteredResources.length === 0 ? (
+        <Card>
+          <CardContent className="text-center py-6 sm:py-10">
+            <FileText className="mx-auto h-10 w-10 sm:h-14 sm:w-14 text-gray-400 mb-2" />
+            <h3 className="text-sm font-semibold text-foreground mb-1">
+              No Resources Found
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              Try adjusting your search filters or check back later.
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+          {filteredResources.map(resource => (
+            <Card key={resource.id} className="hover:shadow-md dark:hover:shadow-gray-800/50 transition-shadow flex flex-col border border-gray-200 dark:border-gray-700">
+              <CardHeader className="pb-1 sm:pb-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1 mb-1 flex-wrap">
+                      <Badge variant="secondary" className="text-xs">{resource.subject}</Badge>
+                      <Badge variant="outline" className="text-xs">{resource.type}</Badge>
+                    </div>
+                    <CardTitle className="text-sm font-bold line-clamp-2 text-foreground">{resource.title}</CardTitle>
+                  </div>
+                </div>
+              </CardHeader>
+
+              <CardContent className="flex-1 space-y-2">
+                <CardDescription className="line-clamp-2 text-xs">
+                  {resource.description}
+                </CardDescription>
+
+                {/* Stats */}
+                <div className="grid grid-cols-3 gap-1 text-xs">
+                  <div className="space-y-0.5">
+                    <p className="text-muted-foreground font-medium text-xs">Size</p>
+                    <p className="text-foreground font-semibold text-xs">{resource.size}</p>
+                  </div>
+                  <div className="space-y-0.5">
+                    <p className="text-muted-foreground font-medium text-xs">Downloads</p>
+                    <p className="text-foreground font-semibold text-xs">{resource.downloads}</p>
+                  </div>
+                  <div className="space-y-0.5">
+                    <p className="text-muted-foreground font-medium text-xs">Rating</p>
+                    <div className="flex items-center gap-0.5">
+                      <Star className="h-2.5 w-2.5 fill-yellow-400 text-yellow-400" />
+                      <p className="text-foreground font-semibold text-xs">{resource.rating}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Meta Info */}
+                <div className="text-xs text-muted-foreground border-t border-border pt-1">
+                  <p className="text-xs">By <span className="font-semibold text-foreground text-xs">{resource.uploadedBy}</span></p>
+                  <p className="text-xs">{new Date(resource.uploadedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+                </div>
+
+                {/* Action Button */}
+                <Button size="sm" className="w-full h-7 text-xs px-2">
+                  <Download className="mr-0.5 h-2.5 w-2.5" />
+                  Download
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* Summary Stats */}
+      {filteredResources.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <Card className="border border-gray-200 dark:border-gray-700">
+            <CardContent className="p-2">
+              <p className="text-xs text-muted-foreground font-medium">Total</p>
+              <p className="text-base sm:text-lg font-bold text-foreground">{mockResources.length}</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border border-border">
+            <CardContent className="p-2">
+              <p className="text-xs text-muted-foreground font-medium">Subjects</p>
+              <p className="text-base sm:text-lg font-bold text-foreground">3</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border border-border">
+            <CardContent className="p-2">
+              <p className="text-xs text-muted-foreground font-medium">Downloads</p>
+              <p className="text-base sm:text-lg font-bold text-foreground">1.7K</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border border-gray-200 dark:border-gray-700">
+            <CardContent className="p-2">
+              <p className="text-xs text-muted-foreground font-medium">Avg Rating</p>
+              <div className="flex items-center gap-0.5">
+                <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                <p className="text-base sm:text-lg font-bold text-foreground">4.6</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+    </div>
+  );
+}
